@@ -10,7 +10,7 @@ dist_1 = create_dist_matrix(graph_1.graph, "a")
 dist_2 = create_dist_matrix(graph_1.graph, "b")
 
 
-def lists_pairs_equal(list1, list2) -> bool:
+def lists_triples_equal(list1, list2) -> bool:
     if (len(list1) != len(list2)):
         return False
 
@@ -23,34 +23,34 @@ def lists_pairs_equal(list1, list2) -> bool:
 
 
 def test_create_dist_matrix():
-    assert (lists_pairs_equal(dist_1, [
-        Pair("a", 0), Pair("b", None), Pair("c", None)]))
-    assert (lists_pairs_equal(dist_2, [
-        Pair("a", None), Pair("b", 0), Pair("c", None)]))
-    assert (lists_pairs_equal(create_dist_matrix(graph_1.graph, "c"), [
-        Pair("a", None), Pair("b", None), Pair("c", 0)]))
+    assert (lists_triples_equal(dist_1, [
+        Triple("a", 0, []), Triple("b", None, None), Triple("c", None, None)]))
+    assert (lists_triples_equal(dist_2, [
+        Triple("a", None, None), Triple("b", 0, []), Triple("c", None, None)]))
+    assert (lists_triples_equal(create_dist_matrix(graph_1.graph, "c"), [
+        Triple("a", None, None), Triple("b", None, None), Triple("c", 0, [])]))
 
 
 def test_get_minimal_distance():
-    assert (get_minimal_distance(dist_1) == Pair("a", 0))
-    assert (get_minimal_distance(dist_2) == Pair("b", 0))
+    assert (get_minimal_distance(dist_1) == Triple("a", 0, []))
+    assert (get_minimal_distance(dist_2) == Triple("b", 0, []))
 
 
 def test_update_dist():
-    # new_dist = update_dist(graph_1.graph, dist_1, Pair("a", 0))
-    # for pair in new_dist:
-    #     print(pair.first, pair.second)
-    assert (lists_pairs_equal(update_dist(graph_1.graph, dist_1, Pair("a", 0)),
-                              [Pair("a", 0), Pair("b", 1), Pair("c", 5)]))
+    # new_dist = update_dist(graph_1.graph, dist_1, Triple("a", 0))
+    # for triple in new_dist:
+    #     print(triple.first, triple.second)
+    assert (lists_triples_equal(update_dist(graph_1.graph, dist_1, Triple("a", 0, [])),
+                                [Triple("a", 0, []), Triple("b", 1, []), Triple("c", 5, [])]))
     ...
 
 
 def test_update_dist_helper():
-    # new_dist = update_dist_helper(dist_1, "b", Pair("a", 0), 1)
-    # for pair in new_dist:
-    #     print(pair.first, pair.second)
-    assert (lists_pairs_equal(update_dist_helper(dist_2, "a", Pair("b", 0), 1),
-            [Pair("a", 1), Pair("b", 0), Pair("c", None)]))
+    # new_dist = update_dist_helper(dist_1, "b", Triple("a", 0), 1)
+    # for triple in new_dist:
+    #     print(triple.first, triple.second)
+    assert (lists_triples_equal(update_dist_helper(dist_2, "a", edge_1, Triple("b", 0, [])),
+            [Triple("a", 1, []), Triple("b", 0, []), Triple("c", None, None)]))
 
 
 def test_all():
