@@ -9,7 +9,7 @@ class Triple:
         return (self.first == other.first and self.second == other.second)
 
     def __str__(self):
-        return "node: " + self.first + " distance: " + str(self.second) + " path: " + print_edge(self.third)
+        return "node: " + self.first + " distance: " + str(self.second) + " path: " + str_edges(self.third)
 
 
 # Edge class
@@ -39,6 +39,13 @@ class Edge:
 class Graph:
     def __init__(self, edges: list[Edge]):
         self.graph: list[Edge] = edges
+
+    def __str__(self):
+        msg = ""
+        for edge in self.graph:
+            msg += str(edge) + "\n"
+
+        return msg
 
     # Creates a new edge with given parameters and adds it to the graph
     # Makes sure that there does not exist another node_a -> node_b (or node_b -> node_a)
@@ -76,6 +83,20 @@ class Graph:
             dist = update_dist(self.graph, dist, min_triple)
 
         return dist
+
+    def get_shortest_path(self, source: str, dest: str) -> Triple:
+        # From the graph, given a source and destination node, run djikstras to determine the shortest path between the nodes and return that triple
+        djikstra_output: list[Triple] = self.djikstra(source)
+        # Filter to find triple with dest and return
+        for triple in djikstra_output:
+            if triple.first == dest:
+                return triple
+
+    def update_edge(self, edge: Edge, new_weight: int) -> None:
+        # Updates edge in the graph to have the weight specified by new_weight
+        for e in self.graph:
+            if e == edge:
+                e.weight = new_weight
 
 
 def create_dist_matrix(graph: list[Edge], source: str) -> list[Triple]:
@@ -150,12 +171,28 @@ def update_dist_helper(dist: list[Triple], dst_node: str, edge: Edge, src_triple
     return dist
 
 
+def copy_path(path: list[Edge]) -> list[Edge]:
+    # Given a list of edges, create a deep copy so that modifying items in path don't affect the new list
+    new_path: list[Edge] = []
+    for edge in path:
+        new_path.append(Edge(edge.node_a, edge.node_b, edge.weight))
+
+    return new_path
+
+
 class Vehicle:
     # Vehicle
-    def __init__(self, id: int, start_node: str, end_node: str):
+    def __init__(self, id: int, start_node: str, end_node: str, graph: Graph):
         self.id = id
         self.start_node = start_node
         self.end_node = end_node
+        # Get shortest path and update graph weights afterwards (increase by 1 to reflect vehicle usage of road)
+        self.shortest_path_triple = graph.get_shortest_path(
+            self.start_node, self.end_node)
+        self.short_dist = self.shortest_path_triple.second
+        self.short_path = copy_path(self.shortest_path_triple.third)
+        for edge in self.short_path:
+            graph.update_edge(edge, edge.weight + 1)
 
 
 # Testing
@@ -164,7 +201,7 @@ def print_triples(list: list[Triple]):
         print(triple)
 
 
-def print_edge(list: list[Edge]):
+def str_edges(list: list[Edge]) -> str:
     msg = ""
     for edge in list:
         msg += str(edge) + " "
@@ -178,11 +215,25 @@ graph_1 = Graph([edge_1, edge_2, edge_3])
 distances_1 = graph_1.djikstra("a")
 distances_2 = graph_1.djikstra("b")
 distances_3 = graph_1.djikstra("c")
-print_triples(distances_1)
+# print_triples(distances_1)
 # print_triples(distances_2)
 # print_triples(distances_3)
+shortest_path_1 = graph_1.get_shortest_path("a", "c")
+# print(shortest_path_1)
 
 assert (graph_1.add_edge("c", "a", 3)) is False
 assert (graph_1.add_edge("a", "c", 3)) is False
 assert (graph_1.add_edge("a", "d", 3)) is True
 assert (graph_1.add_edge("a", "b", 1)) is False
+
+# Vehicle testing
+print(graph_1)  # initial graph
+vehicle_1 = Vehicle(0, "a", "c", graph_1)
+print(vehicle_1.short_dist)
+print(str_edges(vehicle_1.short_path))
+print(graph_1)  # graph after has weights along shortest path updated
+# now a new vehicle on the same route will take a different path since weights are updated
+vehicle_2 = Vehicle(1, "a", "c", graph_1)
+print(vehicle_2.short_dist)
+print(str_edges(vehicle_2.short_path))
+print(graph_1)
