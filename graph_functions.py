@@ -1,4 +1,8 @@
+import random
+
 # Triple class
+
+
 class Triple:
     def __init__(self, first, second, third):
         self.first = first
@@ -37,8 +41,15 @@ class Edge:
 
 
 class Graph:
-    def __init__(self, edges: list[Edge]):
-        self.graph: list[Edge] = edges
+    def __init__(self, edges: list[Edge] = None, num_vertices: int = None, max_weight: int = None):
+        if (edges is None):
+            if (num_vertices < 2):
+                num_vertices = 2
+            if (max_weight < 1):
+                max_weight = 1
+            self.generate_graph(num_vertices, max_weight)
+        else:
+            self.graph: list[Edge] = edges
 
     def __str__(self):
         msg = ""
@@ -97,6 +108,53 @@ class Graph:
         for e in self.graph:
             if e == edge:
                 e.weight = new_weight
+
+    def generate_graph(self, num_vertices, max_weight) -> None:
+        # Generates a random graph with given parameters and sets it to self.graph
+        # 1. generate a connected graph by shuffling a list of vertices
+        # 2. n = randomly determine how many more edges to add (determine upper bound st graph models a city)
+        # 3. randomly generate more edges (n) to finalize graph with some redundancy
+        connected_graph = generate_connected_graph(num_vertices, max_weight)
+        # generate n to n*2 extra vertices
+        num_add = random.randint(num_vertices, num_vertices * 2)
+        self.graph = add_edges(
+            connected_graph, num_vertices, num_add, max_weight)
+
+
+def add_edges(connected_graph: list[Edge], num_vertices: int, num_add: int, max_weight: int) -> list[Edge]:
+    # Determines random vertices to add num_add edges to with max_weight
+    vertices: list[str] = []
+    for i in range(num_vertices):
+        vertices.append(str(i + 1))
+
+    for i in range(num_add):
+        rand_node_a: str = str(random.randint(1, num_vertices))
+        while True:
+            rand_node_b: str = str(random.randint(1, num_vertices))
+            if (rand_node_b != rand_node_a):
+                break
+
+        rand_weight = random.randint(1, max_weight)
+        edge = Edge(rand_node_a, rand_node_b, rand_weight)
+        connected_graph.append(edge)
+
+    return connected_graph
+
+
+def generate_connected_graph(num_vertices: int, max_weight: int) -> list[Edge]:
+    # Generate a random connected graph with nodes numbered up to num_vertices and weights up to max_weight
+    graph: list[Edge] = []
+    vertices: list[str] = []
+    for i in range(num_vertices):
+        vertices.append(str(i + 1))
+
+    random.shuffle(vertices)
+    for i in range(len(vertices) - 1):
+        rand_weight = random.randint(1, max_weight)
+        edge = Edge(vertices[i], vertices[i + 1], rand_weight)
+        graph.append(edge)
+
+    return graph
 
 
 def create_dist_matrix(graph: list[Edge], source: str) -> list[Triple]:
@@ -227,13 +285,20 @@ assert (graph_1.add_edge("a", "d", 3)) is True
 assert (graph_1.add_edge("a", "b", 1)) is False
 
 # Vehicle testing
-print(graph_1)  # initial graph
-vehicle_1 = Vehicle(0, "a", "c", graph_1)
-print(vehicle_1.short_dist)
-print(str_edges(vehicle_1.short_path))
-print(graph_1)  # graph after has weights along shortest path updated
-# now a new vehicle on the same route will take a different path since weights are updated
-vehicle_2 = Vehicle(1, "a", "c", graph_1)
-print(vehicle_2.short_dist)
-print(str_edges(vehicle_2.short_path))
-print(graph_1)
+# print(graph_1)  # initial graph
+# vehicle_1 = Vehicle(0, "a", "c", graph_1)
+# print(vehicle_1.short_dist)
+# print(str_edges(vehicle_1.short_path))
+# print(graph_1)  # graph after has weights along shortest path updated
+# # now a new vehicle on the same route will take a different path since weights are updated
+# vehicle_2 = Vehicle(1, "a", "c", graph_1)
+# print(vehicle_2.short_dist)
+# print(str_edges(vehicle_2.short_path))
+# print(graph_1)
+
+graph_2 = Graph(num_vertices=5, max_weight=5)
+# print(graph_2)
+# print_triples(graph_2.djikstra("1"))
+
+graph_3 = Graph(num_vertices=100, max_weight=10)
+print(graph_3)
